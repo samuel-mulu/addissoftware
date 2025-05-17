@@ -5,18 +5,15 @@ require("dotenv").config();
 
 const app = express();
 
-// ✅ Allow multiple origins: local dev + deployed frontend
-const allowedOrigins = [
-  "http://localhost:5173",                         // local dev
-  "https://your-vercel-app.vercel.app",           // replace with your Vercel domain
-];
+const allowedOrigins = ["http://localhost:5173"];
 
 app.use(cors({
   origin: function (origin, callback) {
+    // allow requests with no origin (like curl or Postman)
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error("❌ Not allowed by CORS: " + origin));
+      callback(new Error("CORS not allowed: " + origin));
     }
   },
   credentials: true,
