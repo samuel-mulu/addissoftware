@@ -1,18 +1,20 @@
-// src/services/songService.ts
-const BASE_URL = 'http://localhost:5000/api/songs'; // Replace with your actual backend API URL
+const BASE_URL = import.meta.env.VITE_API_BASE_URL; // Must be set in .env
+
+const handleResponse = async (response: Response) => {
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || 'Something went wrong');
+  }
+  return await response.json();
+};
 
 export const getSongs = async () => {
   try {
     const response = await fetch(BASE_URL);
-    if (!response.ok) throw new Error('Failed to fetch songs');
-    return await response.json();
+    return await handleResponse(response);
   } catch (error: unknown) {
-    // Check if error is an instance of Error before accessing its properties
-    if (error instanceof Error) {
-      throw new Error(error.message || 'Something went wrong');
-    } else {
-      throw new Error('Something went wrong');
-    }
+    if (error instanceof Error) throw new Error(error.message);
+    else throw new Error('Unknown error occurred while fetching songs');
   }
 };
 
@@ -23,45 +25,38 @@ export const createSong = async (song: { title: string; artist: string; album: s
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(song),
     });
-    if (!response.ok) throw new Error('Failed to create song');
-    return await response.json();
+    return await handleResponse(response);
   } catch (error: unknown) {
-    if (error instanceof Error) {
-      throw new Error(error.message || 'Something went wrong');
-    } else {
-      throw new Error('Something went wrong');
-    }
+    if (error instanceof Error) throw new Error(error.message);
+    else throw new Error('Unknown error occurred while creating a song');
   }
 };
 
-export const updateSong = async (id: string, song: { title: string; artist: string; album: string; genre: string }) => {
+export const updateSong = async (
+  id: string,
+  song: { title: string; artist: string; album: string; genre: string }
+) => {
   try {
     const response = await fetch(`${BASE_URL}/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(song),
     });
-    if (!response.ok) throw new Error('Failed to update song');
-    return await response.json();
+    return await handleResponse(response);
   } catch (error: unknown) {
-    if (error instanceof Error) {
-      throw new Error(error.message || 'Something went wrong');
-    } else {
-      throw new Error('Something went wrong');
-    }
+    if (error instanceof Error) throw new Error(error.message);
+    else throw new Error('Unknown error occurred while updating the song');
   }
 };
 
 export const deleteSong = async (id: string) => {
   try {
-    const response = await fetch(`${BASE_URL}/${id}`, { method: 'DELETE' });
-    if (!response.ok) throw new Error('Failed to delete song');
-    return await response.json();
+    const response = await fetch(`${BASE_URL}/${id}`, {
+      method: 'DELETE',
+    });
+    return await handleResponse(response);
   } catch (error: unknown) {
-    if (error instanceof Error) {
-      throw new Error(error.message || 'Something went wrong');
-    } else {
-      throw new Error('Something went wrong');
-    }
+    if (error instanceof Error) throw new Error(error.message);
+    else throw new Error('Unknown error occurred while deleting the song');
   }
 };
