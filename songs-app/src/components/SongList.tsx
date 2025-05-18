@@ -142,11 +142,14 @@ const SongList = () => {
     setEditingSong(song);
   };
 
-  const handleUpdateComplete = () => {
-    dispatch(setLoading(true));
-    fetchSongs();
+  const handleUpdateComplete = (updatedSong: Song) => {
+    const updatedSongs = songs.map((song) =>
+      song._id === updatedSong._id ? updatedSong : song
+    );
+    dispatch(setSongs(updatedSongs));
     setEditingSong(null);
   };
+  
 
   const fetchSongs = async () => {
     dispatch(setLoading(true));
