@@ -116,9 +116,10 @@ const SongList = () => {
 
   const [editingSong, setEditingSong] = useState<Song | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
-
   const [searchFilter, setSearchFilter] = useState<'title' | 'artist' | 'album' | 'genre'>('title');
   const [searchTerm, setSearchTerm] = useState('');
+
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   const handleAddSong = (newSong: Song) => {
     dispatch(setSongs([...songs, newSong]));
@@ -126,7 +127,7 @@ const SongList = () => {
 
   const handleDelete = async (id: string) => {
     try {
-      await axios.delete(`http://localhost:5000/api/songs/${id}`);
+      await axios.delete(`${API_BASE_URL}/${id}`);
       dispatch(setSongs(songs.filter((song) => song._id !== id)));
     } catch (error) {
       dispatch(setError('Failed to delete song'));
@@ -146,7 +147,7 @@ const SongList = () => {
   const fetchSongs = async () => {
     dispatch(setLoading(true));
     try {
-      const response = await fetch('http://localhost:5000/api/songs');
+      const response = await fetch(`${API_BASE_URL}`);
       const data = await response.json();
       dispatch(setSongs(data));
     } catch (error) {
