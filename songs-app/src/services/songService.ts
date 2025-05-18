@@ -1,4 +1,4 @@
-const BASE_URL = import.meta.env.VITE_API_BASE_URL; // Must be set in .env
+const BASE_URL = process.env.REACT_APP_API_BASE_URL as string; // CRA uses REACT_APP_ prefix
 
 const handleResponse = async (response: Response) => {
   if (!response.ok) {
