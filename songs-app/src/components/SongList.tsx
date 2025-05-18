@@ -111,7 +111,7 @@ const Dropdown = styled.select`
   font-weight: bold;
 `;
 
-const SongList = () => {
+const SongList: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { songs, loading, error } = useSelector((state: RootState) => state.songs);
 
@@ -120,7 +120,7 @@ const SongList = () => {
   const [searchFilter, setSearchFilter] = useState<'title' | 'artist' | 'album' | 'genre'>('title');
   const [searchTerm, setSearchTerm] = useState('');
 
-  const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+  const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:10000';
 
   const fetchSongs = async () => {
     dispatch(setLoading(true));
@@ -128,6 +128,7 @@ const SongList = () => {
       const response = await axios.get(`${BASE_URL}/api/songs`);
       dispatch(setSongs(response.data));
     } catch (err) {
+      console.error('Error fetching songs:', err);
       dispatch(setError('Failed to fetch songs'));
     } finally {
       dispatch(setLoading(false));
@@ -138,7 +139,8 @@ const SongList = () => {
     try {
       await axios.delete(`${BASE_URL}/api/songs/${id}`);
       dispatch(setSongs(songs.filter((song) => song._id !== id)));
-    } catch {
+    } catch (err) {
+      console.error('Error deleting song:', err);
       dispatch(setError('Failed to delete song'));
     }
   };
@@ -165,36 +167,29 @@ const SongList = () => {
   }, []);
 
   const filteredSongs = songs.filter((song) => {
-    const rawValue = song?.[searchFilter];
-    const value = typeof rawValue === 'string' ? rawValue.toLowerCase() : '';
+    const value = (song?.[searchFilter] || '').toLowerCase();
     return value.includes(searchTerm.toLowerCase());
   });
-
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>{error}</div>;
 
   return (
     <Container>
       {editingSong && <EditSong song={editingSong} onUpdate={handleUpdateComplete} />}
-
       <Button onClick={toggleCreateForm}>
         {showCreateForm ? 'Hide Form' : 'Add New Song'}
       </Button>
-
       {showCreateForm && <CreateSong onAddSong={handleAddSong} />}
-
+      
       {/* Search Bar */}
       <SearchBarContainer>
         <Dropdown
           value={searchFilter}
-          onChange={(e) => setSearchFilter(e.target.value as any)}
+          onChange={(e) => setSearchFilter(e.target.value as 'title' | 'artist' | 'album' | 'genre')}
         >
           <option value="title">Title</option>
           <option value="artist">Artist</option>
           <option value="album">Album</option>
           <option value="genre">Genre</option>
         </Dropdown>
-
         <SearchInput
           type="text"
           value={searchTerm}
@@ -203,39 +198,37 @@ const SongList = () => {
         />
       </SearchBarContainer>
 
-      <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-        {filteredSongs.length > 0 ? (
-          filteredSongs.map((song, index) => (
-            <Card key={song._id}>
-              <CardHeader>
-                <div>#{index + 1}</div>
-                <div>
-                  <Button onClick={() => handleUpdate(song)}>Edit</Button>{' '}
-                  <Button onClick={() => handleDelete(song._id)}>Delete</Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <SongInfo>
-                  <div>
-                    <SongLabel>Title: </SongLabel>{song.title}
+      {loading ? (
+        <div>Loading...</div>
+      ) : error ? (
+        <div style={{ color: 'red' }}>{error}</div>
+      ) : (
+        <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+          {filteredSongs.length > 0 ? (
+            filteredSongs.map((song, index) => (
+              <Card key={song._id}>
+                <CardHeader>
+                  <div>#{index + 1}</div>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <Button onClick={() => handleUpdate(song)}>Edit</Button>
+                    <Button onClick={() => handleDelete(song._id)}>Delete</Button>
                   </div>
-                  <div>
-                    <SongLabel>Artist: </SongLabel>{song.artist}
-                  </div>
-                  <div>
-                    <SongLabel>Genre: </SongLabel>{song.genre}
-                  </div>
-                  <div>
-                    <SongLabel>Album: </SongLabel>{song.album}
-                  </div>
-                </SongInfo>
-              </CardContent>
-            </Card>
-          ))
-        ) : (
-          <div>No songs found</div>
-        )}
-      </div>
+                </CardHeader>
+                <CardContent>
+                  <SongInfo>
+                    <div><SongLabel>Title:</SongLabel> {song.title}</div>
+                    <div><SongLabel>Artist:</SongLabel> {song.artist}</div>
+                    <div><SongLabel>Genre:</SongLabel> {song.genre}</div>
+                    <div><SongLabel>Album:</SongLabel> {song.album}</div>
+                  </SongInfo>
+                </CardContent>
+              </Card>
+            ))
+          ) : (
+            <div>No songs found.</div>
+          )}
+        </div>
+      )}
     </Container>
   );
 };
