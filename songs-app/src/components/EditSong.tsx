@@ -15,6 +15,8 @@ const EditSong = ({ song, onUpdate }: { song: Song; onUpdate: () => void }) => {
   const [album, setAlbum] = useState(song.album);
   const [genre, setGenre] = useState(song.genre);
 
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '';
+
   useEffect(() => {
     setTitle(song.title);
     setArtist(song.artist);
@@ -26,10 +28,10 @@ const EditSong = ({ song, onUpdate }: { song: Song; onUpdate: () => void }) => {
     e.preventDefault();
     const updatedSong = { title, artist, album, genre };
     try {
-      const response = await axios.put(`http://localhost:5000/api/songs/${song._id}`, updatedSong);
-      onUpdate(); // Call onUpdate after the update is successful
+      await axios.put(`${API_BASE_URL}/${song._id}`, updatedSong);
+      onUpdate(); // Refresh list or close modal after successful update
     } catch (error) {
-      console.error('Failed to update song', error);
+      console.error('❌ Failed to update song', error);
     }
   };
 
