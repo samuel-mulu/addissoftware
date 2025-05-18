@@ -165,9 +165,10 @@ const SongList = () => {
   }, []);
 
   const filteredSongs = songs.filter((song) => {
-    const fieldValue = song[searchFilter]?.toLowerCase() || '';
-    return fieldValue.includes(searchTerm.toLowerCase());
-  });
+  const value = (song[searchFilter] ?? '').toString().toLowerCase();
+  return value.includes(searchTerm.toLowerCase());
+});
+
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>{error}</div>;
