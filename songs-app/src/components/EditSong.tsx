@@ -26,7 +26,7 @@ const EditSong = ({ song, onUpdate }: { song: Song; onUpdate: () => void }) => {
     e.preventDefault();
     const updatedSong = { title, artist, album, genre };
     try {
-      const response = await axios.put(`http://localhost:5000/api/songs/${song._id}`, updatedSong);
+      
       onUpdate(); // Call onUpdate after the update is successful
     } catch (error) {
       console.error('Failed to update song', error);
