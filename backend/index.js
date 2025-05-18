@@ -7,9 +7,21 @@ const app = express();
 
 
 
+const allowedOrigins = [
+  "http://localhost:3000",                // CRA dev
+  "http://localhost:5173",                // Vite dev (optional if you're no longer using Vite)
+  "https://songmanagement1.netlify.app"   // ✅ Netlify production
+];
+
 app.use(cors({
-  origin: process.env.FRONTEND_ORIGIN,
-  origin: "http://localhost:5173", // your Vite frontend
+  origin: function (origin, callback) {
+    // allow requests with no origin (like mobile apps or curl requests)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS not allowed for origin: ${origin}`));
+    }
+  },
   credentials: true
 }));
 app.use(express.json());
