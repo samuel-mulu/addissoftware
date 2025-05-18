@@ -1,6 +1,5 @@
 // redux/songsSlice.ts
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { AppDispatch } from './store'; // Import AppDispatch to type the dispatch function
 
 interface Song {
   _id: string;
