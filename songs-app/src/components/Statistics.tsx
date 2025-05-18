@@ -41,7 +41,7 @@ const Statistics = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await axios.get(`${API_BASE_URL}/songs/stats/summary`);
+        const response = await axios.get(`${API_BASE_URL}/stats/summary`);
         setStats(response.data);
       } catch (err) {
         console.error('Error fetching stats:', err);
