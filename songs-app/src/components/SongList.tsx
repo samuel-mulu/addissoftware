@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { setSongs, setLoading, setError } from '../redux/songsSlice';
-import { AppDispatch, RootState } from '../redux/store';
 import axios from 'axios';
 import styled from '@emotion/styled';
 import { space, layout, typography, border, color } from 'styled-system';
+import { AppDispatch, RootState } from '../redux/store';
+import { setSongs, setLoading, setError } from '../redux/songsSlice';
 import EditSong from './EditSong';
 import CreateSong from './CreateSong';
 
+// Types
 interface Song {
   _id: string;
   title: string;
@@ -116,21 +117,34 @@ const SongList = () => {
 
   const [editingSong, setEditingSong] = useState<Song | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
-
   const [searchFilter, setSearchFilter] = useState<'title' | 'artist' | 'album' | 'genre'>('title');
   const [searchTerm, setSearchTerm] = useState('');
 
-  const handleAddSong = (newSong: Song) => {
-    dispatch(setSongs([...songs, newSong]));
+  const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+
+  const fetchSongs = async () => {
+    dispatch(setLoading(true));
+    try {
+      const response = await axios.get(`${BASE_URL}/api/songs`);
+      dispatch(setSongs(response.data));
+    } catch (err) {
+      dispatch(setError('Failed to fetch songs'));
+    } finally {
+      dispatch(setLoading(false));
+    }
   };
 
   const handleDelete = async (id: string) => {
     try {
-      await axios.delete(`http://localhost:5000/api/songs/${id}`);
+      await axios.delete(`${BASE_URL}/api/songs/${id}`);
       dispatch(setSongs(songs.filter((song) => song._id !== id)));
-    } catch (error) {
+    } catch {
       dispatch(setError('Failed to delete song'));
     }
+  };
+
+  const handleAddSong = (newSong: Song) => {
+    dispatch(setSongs([...songs, newSong]));
   };
 
   const handleUpdate = (song: Song) => {
@@ -138,31 +152,17 @@ const SongList = () => {
   };
 
   const handleUpdateComplete = () => {
-    dispatch(setLoading(true));
     fetchSongs();
     setEditingSong(null);
   };
 
-  const fetchSongs = async () => {
-    dispatch(setLoading(true));
-    try {
-      const response = await fetch('http://localhost:5000/api/songs');
-      const data = await response.json();
-      dispatch(setSongs(data));
-    } catch (error) {
-      dispatch(setError('Failed to fetch songs'));
-    } finally {
-      dispatch(setLoading(false));
-    }
+  const toggleCreateForm = () => {
+    setShowCreateForm((prev) => !prev);
   };
 
   useEffect(() => {
     fetchSongs();
-  }, [dispatch]);
-
-  const toggleCreateForm = () => {
-    setShowCreateForm((prev) => !prev);
-  };
+  }, []);
 
   const filteredSongs = songs.filter((song) => {
     const fieldValue = song[searchFilter]?.toLowerCase() || '';
