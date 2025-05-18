@@ -10,6 +10,11 @@ interface Song {
   genre: string;
 }
 
+interface EditSongProps {
+  song: Song | null | undefined;
+  onUpdate: () => void;
+}
+
 const Form = styled.form`
   max-width: 500px;
   margin: 1.5rem auto;
@@ -48,24 +53,32 @@ const Error = styled.div`
   text-align: center;
 `;
 
-const EditSong: React.FC<{ song: Song; onUpdate: () => void }> = ({ song, onUpdate }) => {
-  const [title, setTitle] = useState(song.title);
-  const [artist, setArtist] = useState(song.artist);
-  const [album, setAlbum] = useState(song.album);
-  const [genre, setGenre] = useState(song.genre);
+const EditSong: React.FC<EditSongProps> = ({ song, onUpdate }) => {
+  const [title, setTitle] = useState('');
+  const [artist, setArtist] = useState('');
+  const [album, setAlbum] = useState('');
+  const [genre, setGenre] = useState('');
   const [error, setError] = useState('');
 
   const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 
   useEffect(() => {
-    setTitle(song.title);
-    setArtist(song.artist);
-    setAlbum(song.album);
-    setGenre(song.genre);
+    if (song) {
+      setTitle(song.title || '');
+      setArtist(song.artist || '');
+      setAlbum(song.album || '');
+      setGenre(song.genre || '');
+    }
   }, [song]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!song?._id) {
+      setError('Invalid song data.');
+      return;
+    }
+
     try {
       await axios.put(`${BASE_URL}/api/songs/${song._id}`, {
         title,
@@ -73,20 +86,22 @@ const EditSong: React.FC<{ song: Song; onUpdate: () => void }> = ({ song, onUpda
         album,
         genre,
       });
-      onUpdate(); // refresh song list
+      onUpdate?.(); // Safe call
     } catch (err) {
       setError('Failed to update song.');
       console.error('❌ Update Error:', err);
     }
   };
 
+  if (!song) return null; // Prevent crash on undefined
+
   return (
     <Form onSubmit={handleSubmit}>
       <h2>Edit Song</h2>
-      <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title" />
-      <Input value={artist} onChange={(e) => setArtist(e.target.value)} placeholder="Artist" />
-      <Input value={album} onChange={(e) => setAlbum(e.target.value)} placeholder="Album" />
-      <Input value={genre} onChange={(e) => setGenre(e.target.value)} placeholder="Genre" />
+      <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title" required />
+      <Input value={artist} onChange={(e) => setArtist(e.target.value)} placeholder="Artist" required />
+      <Input value={album} onChange={(e) => setAlbum(e.target.value)} placeholder="Album" required />
+      <Input value={genre} onChange={(e) => setGenre(e.target.value)} placeholder="Genre" required />
       {error && <Error>{error}</Error>}
       <Button type="submit">Update Song</Button>
     </Form>
