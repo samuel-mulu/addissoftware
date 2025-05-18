@@ -3,12 +3,10 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { css } from '@emotion/react';
 
-// Props
 interface CreateSongProps {
   onAddSong: (newSong: any) => void;
 }
 
-// Component
 const CreateSong: React.FC<CreateSongProps> = ({ onAddSong }) => {
   const [title, setTitle] = useState('');
   const [artist, setArtist] = useState('');
@@ -16,11 +14,13 @@ const CreateSong: React.FC<CreateSongProps> = ({ onAddSong }) => {
   const [genre, setGenre] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '';
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const { data } = await axios.post('http://localhost:5000/api/songs', {
+      const { data } = await axios.post(API_BASE_URL, {
         title,
         artist,
         album,
@@ -41,7 +41,6 @@ const CreateSong: React.FC<CreateSongProps> = ({ onAddSong }) => {
   return (
     <form css={formStyle} onSubmit={handleSubmit}>
       <h2>Create New Song</h2>
-
       <input
         type="text"
         value={title}
@@ -69,7 +68,6 @@ const CreateSong: React.FC<CreateSongProps> = ({ onAddSong }) => {
         placeholder="🎧 Genre"
         required
       />
-
       <button type="submit" disabled={loading}>
         {loading ? 'Adding...' : 'Add Song'}
       </button>
@@ -79,7 +77,7 @@ const CreateSong: React.FC<CreateSongProps> = ({ onAddSong }) => {
 
 export default CreateSong;
 
-// Emotion CSS styles
+// Emotion CSS
 const formStyle = css`
   max-width: 400px;
   margin: 2rem auto;
