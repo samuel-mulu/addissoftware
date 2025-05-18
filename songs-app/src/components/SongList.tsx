@@ -119,7 +119,11 @@ const SongList = () => {
   const [searchFilter, setSearchFilter] = useState<'title' | 'artist' | 'album' | 'genre'>('title');
   const [searchTerm, setSearchTerm] = useState('');
 
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+
+  if (!API_BASE_URL) {
+    throw new Error('REACT_APP_API_BASE_URL is missing. Check your .env file or Netlify environment variables.');
+  }
 
   const handleAddSong = (newSong: Song) => {
     dispatch(setSongs([...songs, newSong]));
