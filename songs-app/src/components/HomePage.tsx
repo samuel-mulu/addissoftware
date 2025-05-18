@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import styled from '@emotion/styled';
-import { space, layout, typography, color, flexbox } from 'styled-system';
+import { space, layout } from 'styled-system';
 import SongList from './SongList';
 
 // Wrapper for the whole page
