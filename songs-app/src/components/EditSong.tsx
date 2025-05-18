@@ -9,7 +9,7 @@ interface Song {
   genre: string;
 }
 
-const EditSong = ({ song, onUpdate }: { song: Song; onUpdate: () => void }) => {
+const EditSong = ({ song, onUpdate }: { song: Song; onUpdate: (updated: Song) => void }) => {
   const [title, setTitle] = useState(song.title);
   const [artist, setArtist] = useState(song.artist);
   const [album, setAlbum] = useState(song.album);
@@ -26,15 +26,14 @@ const EditSong = ({ song, onUpdate }: { song: Song; onUpdate: () => void }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const updatedSong = { title, artist, album, genre };
+    const updatedSong = { ...song, title, artist, album, genre };
     try {
-      await axios.put(`${API_BASE_URL}/${song._id}`, updatedSong);
-      onUpdate(); // Refresh list or close modal after successful update
+      const res = await axios.put(`${API_BASE_URL}/${song._id}`, updatedSong);
+      onUpdate(res.data); // Pass updated song to parent
     } catch (error) {
       console.error('❌ Failed to update song', error);
     }
   };
-
   return (
     <form onSubmit={handleSubmit}>
       <input
