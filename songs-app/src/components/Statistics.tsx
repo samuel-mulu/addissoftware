@@ -84,7 +84,7 @@ const Statistics = () => {
             {activeModal === 'songs' && (
               <>
                 <h4>Total Songs:</h4>
-                <p>{stats.totalSongs} songs available in the database.</p>
+                <p>{stats.totalSongs} songs available.</p>
               </>
             )}
 
@@ -101,7 +101,7 @@ const Statistics = () => {
 
             {activeModal === 'artists' && (
               <>
-                <h4># of Songs & Albums Each Artist Has:</h4>
+                <h4># number of Songs :</h4>
                 <ul>
                   {stats.artistStats.map((a: ArtistStat) => (
                     <li key={a._id}>{capitalize(a._id)}: {a.songs} song{a.songs !== 1 ? 's' : ''}, {a.albums ?? 0} album{(a.albums ?? 0) !== 1 ? 's' : ''}</li>
@@ -112,7 +112,7 @@ const Statistics = () => {
 
             {activeModal === 'albums' && (
               <>
-                <h4># of Songs in Each Album:</h4>
+                <h4>each of Songs in Each Album:</h4>
                 <ul>
                   {stats.albumStats.map((a: AlbumStat) => (
                     <li key={a._id}>{capitalize(a._id)}: {a.songs} song{a.songs !== 1 ? 's' : ''}</li>
