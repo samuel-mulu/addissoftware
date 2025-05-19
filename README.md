@@ -41,8 +41,8 @@ The statistics page dynamically shows:
 
 ## 🌐 Live Demo
 
-- **Frontend**: [View on Vercel](https://songmanagement1.netlify.app)
-- **Backend API**: [Live API on Render]([https://songmanagemnt.onrender.com//api/songs](https://songmanagemnt.onrender.com/api/songs/stats/summary))
+- **Frontend**: [View on netlify](https://songmanagement1.netlify.app)
+- **Backend API**: [Live API on Render]([https://songmanagemnt.onrender.com//api/songs]) and [Live API on Render]([https://songmanagemnt.onrender.com//api/songs//stats/summary])
 
 > Note: You can create and manage songs from the UI. All data updates in real time using Redux-Saga.
 
@@ -54,7 +54,7 @@ The statistics page dynamically shows:
 
 ```bash
 cd backend
-cp .env.example .env
+npm start   
 # Fill MONGO_URI inside .env
 
 # Run using Docker
