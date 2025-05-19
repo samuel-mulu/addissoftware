@@ -57,7 +57,9 @@ The statistics page dynamically shows:
 
 cd songs-app
 npm install
-npm start   
+npm start
+
+use this to eslint  "npx eslint src --fix"  
 
 # Run using Docker
 docker compose up --build
