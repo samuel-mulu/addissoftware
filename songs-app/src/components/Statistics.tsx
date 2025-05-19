@@ -104,7 +104,7 @@ const Statistics = () => {
                 <h4># number of Songs :</h4>
                 <ul>
                   {stats.artistStats.map((a: ArtistStat) => (
-                    <li key={a._id}>{capitalize(a._id)}: {a.songs} song{a.songs !== 1 ? 's' : ''}, {a.albums ?? 0} album{(a.albums ?? 0) !== 1 ? 's' : ''}</li>
+                    <li key={a._id}>{capitalize(a._id)}: {a.songs} song{a.songs !== 1 ? 's' : ''}, </li>
                   ))}
                 </ul>
               </>
