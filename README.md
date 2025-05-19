@@ -55,7 +55,9 @@ The statistics page dynamically shows:
 ```bash
 cd backend
 npm start   
-# Fill MONGO_URI inside .env
+
+cd songs-app
+npm start   
 
 # Run using Docker
 docker compose up --build
