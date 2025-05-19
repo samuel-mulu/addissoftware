@@ -16,7 +16,7 @@ interface Song {
   genre: string;
 }
 
-// Styled Components
+// Styled components
 const Container = styled('div')`
   display: flex;
   flex-direction: column;
@@ -35,7 +35,6 @@ const Card = styled('div')`
   flex-direction: column;
   gap: 16px;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
-
   &:hover {
     transform: translateY(-5px);
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
@@ -89,8 +88,8 @@ const Button = styled('button')(
 
 const SearchBarContainer = styled.div`
   display: flex;
-  gap: 1rem;
   flex-wrap: wrap;
+  gap: 1rem;
   align-items: center;
 `;
 
@@ -110,6 +109,13 @@ const Dropdown = styled.select`
   font-weight: bold;
 `;
 
+const PaginationControls = styled.div`
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  align-items: center;
+`;
+
 const SongList = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { songs, loading, error } = useSelector((state: RootState) => state.songs);
@@ -118,104 +124,116 @@ const SongList = () => {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [searchFilter, setSearchFilter] = useState<'title' | 'artist' | 'album' | 'genre'>('title');
   const [searchTerm, setSearchTerm] = useState('');
+  const [genreFilter, setGenreFilter] = useState('');
+  const [albumFilter, setAlbumFilter] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [sortField, setSortField] = useState<'title' | 'artist' | 'album' | 'genre'>('title');
 
+  const itemsPerPage = 5;
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
-  if (!API_BASE_URL) {
-    throw new Error('REACT_APP_API_BASE_URL is missing. Check your .env file or Netlify environment variables.');
-  }
+  if (!API_BASE_URL) throw new Error('Missing API URL');
 
-  const handleAddSong = (newSong: Song) => {
-    dispatch(setSongs([...songs, newSong]));
-  };
+  const handleAddSong = (newSong: Song) => dispatch(setSongs([...songs, newSong]));
+  const toggleCreateForm = () => setShowCreateForm(prev => !prev);
+  const handleUpdate = (song: Song) => setEditingSong(song);
+  const handleUpdateComplete = () => setEditingSong(null);
 
   const handleDelete = async (id: string) => {
     try {
       await axios.delete(`${API_BASE_URL}/${id}`);
-      dispatch(setSongs(songs.filter((song) => song._id !== id)));
-    } catch (error) {
+      dispatch(setSongs(songs.filter((s) => s._id !== id)));
+    } catch (err) {
       dispatch(setError('Failed to delete song'));
     }
   };
 
-  const handleUpdate = (song: Song) => {
-    setEditingSong(song);
-  };
-
-  const handleUpdateComplete = (updatedSong: Song) => {
-    const updatedSongs = songs.map((song) =>
-      song._id === updatedSong._id ? updatedSong : song
-    );
-    dispatch(setSongs(updatedSongs));
-    setEditingSong(null);
-  };
-  
-
   const fetchSongs = async () => {
-    dispatch(setLoading(true));
     try {
-      const response = await fetch(`${API_BASE_URL}`);
-      const data = await response.json();
+      const res = await fetch(`${API_BASE_URL}`);
+      const data = await res.json();
       dispatch(setSongs(data));
-    } catch (error) {
+    } catch {
       dispatch(setError('Failed to fetch songs'));
-    } finally {
-      dispatch(setLoading(false));
     }
   };
 
   useEffect(() => {
-    fetchSongs();
+    dispatch(setLoading(true));
+    fetchSongs().finally(() => dispatch(setLoading(false)));
+    const interval = setInterval(fetchSongs, 10000);
+    return () => clearInterval(interval);
   }, [dispatch]);
 
-  const toggleCreateForm = () => {
-    setShowCreateForm((prev) => !prev);
+  const filteredSongs = songs
+    .filter((s) => {
+      const matchSearch = s[searchFilter]?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchGenre = genreFilter ? s.genre === genreFilter : true;
+      const matchAlbum = albumFilter ? s.album === albumFilter : true;
+      return matchSearch && matchGenre && matchAlbum;
+    })
+    .sort((a, b) => a[sortField].localeCompare(b[sortField]));
+
+  const totalPages = Math.ceil(filteredSongs.length / itemsPerPage);
+  const paginatedSongs = filteredSongs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  const clearFilters = () => {
+    setSearchTerm('');
+    setGenreFilter('');
+    setAlbumFilter('');
   };
 
-  const filteredSongs = songs.filter((song) => {
-    const fieldValue = song[searchFilter]?.toLowerCase() || '';
-    return fieldValue.includes(searchTerm.toLowerCase());
-  });
+  const uniqueAlbums = Array.from(new Set(songs.map((s) => s.album)));
+  const uniqueGenres = Array.from(new Set(songs.map((s) => s.genre)));
 
-  if (loading) return <div>Loading...</div>;
   if (error) return <div>{error}</div>;
 
   return (
     <Container>
       {editingSong && <EditSong song={editingSong} onUpdate={handleUpdateComplete} />}
-
-      <Button onClick={toggleCreateForm}>
-        {showCreateForm ? 'Hide Form' : 'Add New Song'}
-      </Button>
-
+      <Button onClick={toggleCreateForm}>{showCreateForm ? 'Hide Form' : 'Add New Song'}</Button>
       {showCreateForm && <CreateSong onAddSong={handleAddSong} />}
 
-      {/* Search Bar */}
       <SearchBarContainer>
-        <Dropdown
-          value={searchFilter}
-          onChange={(e) => setSearchFilter(e.target.value as any)}
-        >
+        <Dropdown value={searchFilter} onChange={(e) => setSearchFilter(e.target.value as any)}>
           <option value="title">Title</option>
           <option value="artist">Artist</option>
           <option value="album">Album</option>
           <option value="genre">Genre</option>
         </Dropdown>
-
         <SearchInput
           type="text"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           placeholder={`Search by ${searchFilter}`}
         />
+        <Dropdown value={albumFilter} onChange={(e) => setAlbumFilter(e.target.value)}>
+          <option value="">All Albums</option>
+          {uniqueAlbums.map((album) => (
+            <option key={album} value={album}>{album}</option>
+          ))}
+        </Dropdown>
+        <Dropdown value={genreFilter} onChange={(e) => setGenreFilter(e.target.value)}>
+          <option value="">All Genres</option>
+          {uniqueGenres.map((genre) => (
+            <option key={genre} value={genre}>{genre}</option>
+          ))}
+        </Dropdown>
+        <Button onClick={clearFilters}>Clear Filters</Button>
+        <Dropdown value={sortField} onChange={(e) => setSortField(e.target.value as any)}>
+          <option value="title">Sort by Title</option>
+          <option value="artist">Sort by Artist</option>
+          <option value="album">Sort by Album</option>
+          <option value="genre">Sort by Genre</option>
+        </Dropdown>
       </SearchBarContainer>
 
       <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-        {filteredSongs.length > 0 ? (
-          filteredSongs.map((song, index) => (
+        {paginatedSongs.length > 0 ? (
+          paginatedSongs.map((song, index) => (
             <Card key={song._id}>
               <CardHeader>
-                <div>#{index + 1}</div>
+                <div>#{index + 1 + (currentPage - 1) * itemsPerPage}</div>
                 <div>
                   <Button onClick={() => handleUpdate(song)}>Edit</Button>{' '}
                   <Button onClick={() => handleDelete(song._id)}>Delete</Button>
@@ -223,18 +241,10 @@ const SongList = () => {
               </CardHeader>
               <CardContent>
                 <SongInfo>
-                  <div>
-                    <SongLabel>Title: </SongLabel>{song.title}
-                  </div>
-                  <div>
-                    <SongLabel>Artist: </SongLabel>{song.artist}
-                  </div>
-                  <div>
-                    <SongLabel>Genre: </SongLabel>{song.genre}
-                  </div>
-                  <div>
-                    <SongLabel>Album: </SongLabel>{song.album}
-                  </div>
+                  <div><SongLabel>Title:</SongLabel> {song.title}</div>
+                  <div><SongLabel>Artist:</SongLabel> {song.artist}</div>
+                  <div><SongLabel>Album:</SongLabel> {song.album}</div>
+                  <div><SongLabel>Genre:</SongLabel> {song.genre}</div>
                 </SongInfo>
               </CardContent>
             </Card>
@@ -243,6 +253,12 @@ const SongList = () => {
           <div>No songs found</div>
         )}
       </div>
+
+      <PaginationControls>
+        <Button onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}>Previous</Button>
+        <span>Page {currentPage} of {totalPages}</span>
+        <Button onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}>Next</Button>
+      </PaginationControls>
     </Container>
   );
 };
