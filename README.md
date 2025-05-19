@@ -42,7 +42,8 @@ The statistics page dynamically shows:
 ## 🌐 Live Demo
 
 - **Frontend**: [View on netlify](https://songmanagement1.netlify.app)
-- **Backend API**:  [View on netlify](https://songmanagemnt.onrender.com/api/songs)
+- **Backend API for list songs**:  [View on render](https://songmanagemnt.onrender.com/api/songs)
+ - **Backend API for statistics**:  [View on render](https://songmanagemnt.onrender.com/api/songs/stats/summary)
 > Note: You can create and manage songs from the UI. All data updates in real time using Redux-Saga.
 
 ---
