@@ -53,10 +53,10 @@ The statistics page dynamically shows:
 ### 📦 Backend (Node + MongoDB)
 
 ```bash
-cd backend
-npm start   
+ 
 
 cd songs-app
+npm install
 npm start   
 
 # Run using Docker
