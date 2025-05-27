@@ -5,6 +5,7 @@ import { addSong } from '../redux/songsSlice';
 import axios from 'axios';
 import styled from '@emotion/styled';
 import { space, layout, typography, border, color, flexbox } from 'styled-system';
+import { CREATE_SONG_REQUEST } from '../redux/songsSagaActions';
 
 // Styled Components
 const Form = styled('form')`
@@ -73,19 +74,24 @@ const SongForm = () => {
   const [genre, setGenre] = useState('');
   const dispatch = useDispatch();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const newSong = { title, artist, album, genre };
-    try {
-      const response = await axios.post('http://localhost:5000/api/songs', newSong);
-      dispatch(addSong(response.data));
-      setTitle('');
-      setArtist('');
-      setAlbum('');
-      setGenre('');
-    } catch (error) {
-      console.error('Error adding song:', error);
+
+    if (!title || !artist || !album || !genre) {
+      alert('All fields are required!');
+      return;
     }
+
+    const newSong = { title, artist, album, genre };
+    
+    // Dispatch an action that saga will handle
+    dispatch({ type: CREATE_SONG_REQUEST, payload: newSong });
+
+    // Clear form
+    setTitle('');
+    setArtist('');
+    setAlbum('');
+    setGenre('');
   };
 
   return (
