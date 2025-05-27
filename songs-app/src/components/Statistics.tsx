@@ -6,6 +6,9 @@ import {
   Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../redux/store'; // Adjust path
+import { fetchStatsRequest } from '../redux/statsSlice';
 
 interface GenreStat {
   _id: string;
