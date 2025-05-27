@@ -3,7 +3,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import createSagaMiddleware from 'redux-saga';
 import songsReducer from './songsSlice';
 import { songsSaga } from './songsSaga';
-import statsReducer from './stats/statsSlice';
+import statsReducer from './statsSlice';
 
 const sagaMiddleware = createSagaMiddleware();
 
