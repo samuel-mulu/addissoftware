@@ -1,83 +1,47 @@
 /** @jsxImportSource @emotion/react */
-import React, { useState } from 'react';
-import axios from 'axios';
+import React from 'react';
+import { useDispatch } from 'react-redux';
 import { css } from '@emotion/react';
+import { createSongRequest } from '../redux/songsSagaActions';
+import { AppDispatch } from '../redux/store';
 
 interface CreateSongProps {
-  onAddSong: (newSong: any) => void;
+  onAddSong: () => void;
 }
 
 const CreateSong: React.FC<CreateSongProps> = ({ onAddSong }) => {
-  const [title, setTitle] = useState('');
-  const [artist, setArtist] = useState('');
-  const [album, setAlbum] = useState('');
-  const [genre, setGenre] = useState('');
-  const [loading, setLoading] = useState(false);
+  const dispatch = useDispatch<AppDispatch>();
 
-  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '';
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setLoading(true);
-    try {
-      const { data } = await axios.post(API_BASE_URL, {
-        title,
-        artist,
-        album,
-        genre,
-      });
-      onAddSong(data);
-      setTitle('');
-      setArtist('');
-      setAlbum('');
-      setGenre('');
-    } catch (error) {
-      console.error('❌ Failed to create song:', error);
-    } finally {
-      setLoading(false);
-    }
+    const form = e.target as HTMLFormElement;
+    const data = new FormData(form);
+    const song = {
+      title: data.get('title') as string,
+      artist: data.get('artist') as string,
+      album: data.get('album') as string,
+      genre: data.get('genre') as string,
+    };
+
+    dispatch(createSongRequest(song));
+    onAddSong();
+    form.reset();
   };
 
   return (
-    <form css={formStyle} onSubmit={handleSubmit}>
-      <h2>Create New Song</h2>
-      <input
-        type="text"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        placeholder="🎵 Song Title"
-        required
-      />
-      <input
-        type="text"
-        value={artist}
-        onChange={(e) => setArtist(e.target.value)}
-        placeholder="🎤 Artist"
-        required
-      />
-      <input
-        type="text"
-        value={album}
-        onChange={(e) => setAlbum(e.target.value)}
-        placeholder="💿 Album"
-      />
-      <input
-        type="text"
-        value={genre}
-        onChange={(e) => setGenre(e.target.value)}
-        placeholder="🎧 Genre"
-        required
-      />
-      <button type="submit" disabled={loading}>
-        {loading ? 'Adding...' : 'Add Song'}
-      </button>
+    <form onSubmit={handleSubmit} css={formStyle}>
+      <h2>Add New Song</h2>
+      <input name="title" placeholder="Title" required />
+      <input name="artist" placeholder="Artist" required />
+      <input name="album" placeholder="Album" required />
+      <input name="genre" placeholder="Genre" required />
+      <button type="submit">Add Song</button>
     </form>
   );
 };
 
 export default CreateSong;
 
-// Emotion CSS
 const formStyle = css`
   max-width: 400px;
   margin: 2rem auto;
