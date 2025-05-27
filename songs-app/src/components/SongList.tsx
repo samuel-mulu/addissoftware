@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { setSongs, setLoading, setError } from '../redux/songsSlice';
 import { AppDispatch, RootState } from '../redux/store';
-import axios from 'axios';
+import { fetchSongsRequest, deleteSongRequest } from '../redux/songsSagaActions';
 import styled from '@emotion/styled';
 import { space, layout, typography, border, color } from 'styled-system';
 import EditSong from './EditSong';
 import CreateSong from './CreateSong';
+
 
 interface Song {
   _id: string;
@@ -16,7 +16,7 @@ interface Song {
   genre: string;
 }
 
-// Styled components
+// Styled components (same as before, unchanged)
 const Container = styled('div')`
   display: flex;
   flex-direction: column;
@@ -130,40 +130,16 @@ const SongList = () => {
   const [sortField, setSortField] = useState<'title' | 'artist' | 'album' | 'genre'>('title');
 
   const itemsPerPage = 5;
-  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
-
-  if (!API_BASE_URL) throw new Error('Missing API URL');
-
-  const handleAddSong = (newSong: Song) => dispatch(setSongs([...songs, newSong]));
-  const toggleCreateForm = () => setShowCreateForm(prev => !prev);
-  const handleUpdate = (song: Song) => setEditingSong(song);
-  const handleUpdateComplete = () => setEditingSong(null);
-
-  const handleDelete = async (id: string) => {
-    try {
-      await axios.delete(`${API_BASE_URL}/${id}`);
-      dispatch(setSongs(songs.filter((s) => s._id !== id)));
-    } catch (err) {
-      dispatch(setError('Failed to delete song'));
-    }
-  };
-
-  const fetchSongs = async () => {
-    try {
-      const res = await fetch(`${API_BASE_URL}`);
-      const data = await res.json();
-      dispatch(setSongs(data));
-    } catch {
-      dispatch(setError('Failed to fetch songs'));
-    }
-  };
 
   useEffect(() => {
-    dispatch(setLoading(true));
-    fetchSongs().finally(() => dispatch(setLoading(false)));
-    const interval = setInterval(fetchSongs, 10000);
+    dispatch(fetchSongsRequest());
+    const interval = setInterval(() => dispatch(fetchSongsRequest()), 10000);
     return () => clearInterval(interval);
   }, [dispatch]);
+
+  const handleDelete = (id: string) => {
+    dispatch(deleteSongRequest(id));
+  };
 
   const filteredSongs = songs
     .filter((s) => {
@@ -186,13 +162,13 @@ const SongList = () => {
   const uniqueAlbums = Array.from(new Set(songs.map((s) => s.album)));
   const uniqueGenres = Array.from(new Set(songs.map((s) => s.genre)));
 
-  if (error) return <div>{error}</div>;
-
   return (
     <Container>
-      {editingSong && <EditSong song={editingSong} onUpdate={handleUpdateComplete} />}
-      <Button onClick={toggleCreateForm}>{showCreateForm ? 'Hide Form' : 'Add New Song'}</Button>
-      {showCreateForm && <CreateSong onAddSong={handleAddSong} />}
+      {editingSong && <EditSong song={editingSong} onUpdate={() => setEditingSong(null)} />}
+      <Button onClick={() => setShowCreateForm((prev) => !prev)}>
+        {showCreateForm ? 'Hide Form' : 'Add New Song'}
+      </Button>
+      {showCreateForm && <CreateSong onAddSong={() => dispatch(fetchSongsRequest())} />}
 
       <SearchBarContainer>
         <Dropdown value={searchFilter} onChange={(e) => setSearchFilter(e.target.value as any)}>
@@ -235,7 +211,7 @@ const SongList = () => {
               <CardHeader>
                 <div>#{index + 1 + (currentPage - 1) * itemsPerPage}</div>
                 <div>
-                  <Button onClick={() => handleUpdate(song)}>Edit</Button>{' '}
+                  <Button onClick={() => setEditingSong(song)}>Edit</Button>{' '}
                   <Button onClick={() => handleDelete(song._id)}>Delete</Button>
                 </div>
               </CardHeader>
