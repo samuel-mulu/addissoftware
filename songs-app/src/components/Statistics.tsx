@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
 import {
   PieChart, Pie, Cell,
   BarChart, Bar, XAxis, YAxis,
@@ -27,7 +26,6 @@ interface AlbumStat {
 }
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#AF19FF'];
-
 const capitalize = (text: string) =>
   text.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 
@@ -35,15 +33,31 @@ const Statistics = () => {
   const [selectedArtist, setSelectedArtist] = useState('');
   const [chartType, setChartType] = useState<'pie' | 'bar'>('pie');
   const [activeModal, setActiveModal] = useState<null | 'songs' | 'artists' | 'albums' | 'genres'>(null);
+  const [showLiveUpdate, setShowLiveUpdate] = useState(true);
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
-
   const { data: stats, loading, error } = useSelector((state: RootState) => state.stats);
 
   useEffect(() => {
+    // Initial load
     dispatch(fetchStatsRequest());
+    setShowLiveUpdate(true);
+
+    const socket = new WebSocket('wss://songmanagemnt.onrender.com'); // Replace with your backend WebSocket URL
+
+    socket.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'statsUpdated') {
+        dispatch(fetchStatsRequest());
+      }
+    };
+
+    return () => {
+      socket.close();
+    };
   }, [dispatch]);
+
   if (error) return <div style={{ padding: 20, color: 'red' }}>{error}</div>;
   if (loading || !stats) return <div style={{ padding: 20 }}>Loading statistics...</div>;
 
@@ -56,6 +70,16 @@ const Statistics = () => {
       <button onClick={() => navigate('/')} style={styles.homeButton}>
         Back to Home
       </button>
+
+      <div style={styles.refreshWrapper}>
+        {showLiveUpdate && <span style={styles.liveDot}>Live</span>}
+        <button onClick={() => {
+          dispatch(fetchStatsRequest());
+          setShowLiveUpdate(false);
+        }} style={styles.refreshButton}>
+          Refresh
+        </button>
+      </div>
 
       <p style={{ fontWeight: 'bold', marginBottom: 10 }}>
         To display the detail click:
@@ -73,14 +97,12 @@ const Statistics = () => {
           <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
             <button style={styles.closeButton} onClick={() => setActiveModal(null)}>&times;</button>
             <h2>Detailed Statistics</h2>
-
             {activeModal === 'songs' && (
               <>
                 <h4>Total Songs:</h4>
                 <p>{stats.totalSongs} songs available.</p>
               </>
             )}
-
             {activeModal === 'genres' && (
               <>
                 <h4># of Songs in Every Genre:</h4>
@@ -91,18 +113,16 @@ const Statistics = () => {
                 </ul>
               </>
             )}
-
             {activeModal === 'artists' && (
               <>
                 <h4># number of Songs :</h4>
                 <ul>
                   {stats.artistStats.map((a: ArtistStat) => (
-                    <li key={a._id}>{capitalize(a._id)}: {a.songs} song{a.songs !== 1 ? 's' : ''}, </li>
+                    <li key={a._id}>{capitalize(a._id)}: {a.songs} song{a.songs !== 1 ? 's' : ''}</li>
                   ))}
                 </ul>
               </>
             )}
-
             {activeModal === 'albums' && (
               <>
                 <h4>each of Songs in Each Album:</h4>
@@ -223,6 +243,27 @@ const styles: { [key: string]: React.CSSProperties } = {
     border: 'none',
     backgroundColor: '#eee',
     borderRadius: 6,
+  },
+  refreshWrapper: {
+    display: 'flex',
+    gap: 12,
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  refreshButton: {
+    backgroundColor: '#007bff',
+    color: '#fff',
+    border: 'none',
+    padding: '8px 12px',
+    borderRadius: 6,
+    cursor: 'pointer',
+  },
+  liveDot: {
+    backgroundColor: 'red',
+    color: 'white',
+    padding: '4px 10px',
+    borderRadius: 12,
+    fontSize: 12,
   },
   cardGrid: {
     display: 'grid',
