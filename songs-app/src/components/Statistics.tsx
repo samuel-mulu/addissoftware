@@ -32,30 +32,20 @@ const capitalize = (text: string) =>
   text.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 
 const Statistics = () => {
-  const [stats, setStats] = useState<any>(null);
   const [selectedArtist, setSelectedArtist] = useState('');
   const [chartType, setChartType] = useState<'pie' | 'bar'>('pie');
   const [activeModal, setActiveModal] = useState<null | 'songs' | 'artists' | 'albums' | 'genres'>(null);
-  const [error, setError] = useState('');
-  const navigate = useNavigate();
 
-  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '';
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const { data: stats, loading, error } = useSelector((state: RootState) => state.stats);
 
   useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const response = await axios.get(`${API_BASE_URL}/stats/summary`);
-        setStats(response.data);
-      } catch (err) {
-        console.error('Error fetching stats:', err);
-        setError('Failed to load statistics.');
-      }
-    };
-    fetchStats();
-  }, [API_BASE_URL]);
-
+    dispatch(fetchStatsRequest());
+  }, [dispatch]);
   if (error) return <div style={{ padding: 20, color: 'red' }}>{error}</div>;
-  if (!stats) return <div style={{ padding: 20 }}>Loading statistics...</div>;
+  if (loading || !stats) return <div style={{ padding: 20 }}>Loading statistics...</div>;
 
   const filteredArtistStats = selectedArtist
     ? stats.artistStats.filter((a: ArtistStat) => a._id === selectedArtist)
