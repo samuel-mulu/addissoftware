@@ -1,6 +1,7 @@
-# 🎵 Addis Software Full Stack Test Project - MERN Stack
+SongManagement - Full Stack Prototype Work - MERN Stack
 
-Welcome! This is my submission for the Full Stack Developer assessment from Addis Software. The project is a fully functional **MERN stack application** to manage and analyze songs, packaged with Docker and deployed online.
+Welcome! This is my submission for the Full Stack Developer prototype work from Addis Software. The project is a fully functional MERN stack application to manage and analyze songs, packaged with Docker and deployed online.
+
 
 ## 📌 Features
 
